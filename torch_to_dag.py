@@ -40,7 +40,7 @@ def torch_to_dag(model, input_tensor):
     for name, module in model.named_modules():
         def hook_fn(mod, _input, _output, name=name):
             activations[name] = _input[0]
-        if isinstance(module, (nn.Conv2d, nn.BatchNorm2d, nn.ReLU)):
+        if isinstance(module, (nn.Conv2d, nn.BatchNorm2d, nn.ReLU, nn.MaxPool2d, nn.Linear, nn.Dropout)):
             module.register_forward_hook(hook_fn)
             
     model(input_tensor)
@@ -72,6 +72,20 @@ def torch_to_dag(model, input_tensor):
                 print({"input_tensor": input_tensor})
                 edges = [{"input_tensor": node.args[0]}]
                 nodes.append(Node("relu", edges))
+            elif isinstance(layer, nn.MaxPool2d):
+                input_tensor = activations.get(layer_name)
+                print({"maxpool2d_input": input_tensor})
+            elif isinstance(layer, nn.Dropout):
+                input_tensor = activations.get(layer_name)
+                print({"dropout input tensor": input_tensor})
+            elif isinstance(layer, nn.Linear):
+                input_tensor = activations.get(layer_name)
+                print({"Linear input" : input_tensor})
+                weights = layer.weight.data
+                bias = layer.bias.data
+                edges = [{"weights": weights}, {"bias": bias}]
+                nodes.append(Node("Linear", edges))
+                
 
     dag = DAG(nodes)
     return dag
