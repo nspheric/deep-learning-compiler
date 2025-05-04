@@ -29,7 +29,9 @@ def torch_to_dag(model, input_tensor):
     for name, module in model.named_modules():
         def hook_fn(mod, _input, _output, name=name):
             activations[name] = _input[0]
-        if isinstance(module, (nn.Conv2d, nn.BatchNorm2d, nn.ReLU, nn.MaxPool2d, nn.Linear, nn.Dropout)):
+        if isinstance(module, (nn.Conv2d, nn.BatchNorm2d,
+                               nn.ReLU, nn.MaxPool2d, nn.Linear,
+                               nn.Dropout)):
             module.register_forward_hook(hook_fn)
             
     model(input_tensor)
