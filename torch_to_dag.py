@@ -37,8 +37,7 @@ def torch_to_dag(model, input_tensor):
     traced_model = fx.symbolic_trace(model)
     nodes = list()
 
-    for node in traced_model.graph.nodes:
-        
+    for node in traced_model.graph.nodes:  
         if node.op == 'call_module':
             layer_name = node.target
             layer = getattr(model, layer_name) 
