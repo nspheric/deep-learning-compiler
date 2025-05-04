@@ -7,11 +7,6 @@ import torch
 import torch.nn as nn
 from model import VGG16
 
-# this vgg16 model hasnt been tested. but the idea is to eventually train
-# this model and compile it with my compiler. i will lower the dag, after some optimizations to llvm ir and/or c
-
-# im guessing the llvm language is all need or something similar
-
 # taken from pytorch docs
 class CustomImageDataset(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
