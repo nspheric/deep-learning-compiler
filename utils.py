@@ -1,6 +1,7 @@
 import shutil
 import os
 import pandas as pd
+
 def make_testing_set():
     for i in range(35000, 45567):
         img = str(i) + ".jpg"
