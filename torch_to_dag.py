@@ -41,56 +41,37 @@ def torch_to_dag(model, input_tensor):
         
         if node.op == 'call_module':
             layer_name = node.target
-            layer = getattr(model, layer_name)
-            
+            layer = getattr(model, layer_name) 
             if isinstance(layer, nn.Conv2d):
-                
                 input_tensor = activations.get(layer_name)
-                
                 weights = layer.weight.data
                 bias = layer.bias.data
-                
                 edges = [{"input_tensor": input_tensor},
                          {"weights": weights},
                          {"bias": bias}]
-                
-                nodes.append(Node("conv2d", edges))
-                
+                nodes.append(Node("conv2d", edges))    
             elif isinstance(layer, nn.BatchNorm2d):
-                
                 input_tensor = activations.get(layer_name)
-                
                 edges = [{"input_tensor": input_tensor},
                          {"weights": layer.weight.data},
                          {"bias": layer.bias.data}]
-                
-                nodes.append(Node("batchnorm2d", edges))
-                
+                nodes.append(Node("batchnorm2d", edges))     
             elif isinstance(layer, nn.ReLU):
-                
                 input_tensor = activations.get(layer_name)
-                
                 edges = [{"input_tensor": input_tensor}]
-                nodes.append(Node("relu", edges))
-                
+                nodes.append(Node("relu", edges))    
             elif isinstance(layer, nn.MaxPool2d):
-                
                 input_tensor = activations.get(layer_name)
                 edges = [{"input_tensor": input_tensor}]
-                nodes.append(Node("max_pool2d", edges))
-                
+                nodes.append(Node("max_pool2d", edges))   
             elif isinstance(layer, nn.Dropout):
-                
                 input_tensor = activations.get(layer_name)
                 edges = [{"input_tensor": input_tensor}]
                 nodes.append(Node("dropout", edges))
-
             else:
                 input_tensor = activations.get(layer_name)
-                
                 weights = layer.weight.data
                 bias = layer.bias.data
-                
                 edges = [{"weights": weights},
                          {"bias": bias}]
                 nodes.append(Node("Linear", edges))
