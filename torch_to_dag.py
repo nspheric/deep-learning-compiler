@@ -22,6 +22,7 @@ class Node:
 # is represented as a dag where the operations such as
 # relu and convolution are the nodes and the edges are
 # tensors, i.e., weights and bias
+
 def torch_to_dag(model, input_tensor):
     activations = {}
     
@@ -37,43 +38,62 @@ def torch_to_dag(model, input_tensor):
     nodes = list()
 
     for node in traced_model.graph.nodes:
+        
         if node.op == 'call_module':
             layer_name = node.target
             layer = getattr(model, layer_name)
+            
             if isinstance(layer, nn.Conv2d):
-                print({"convarg:": node.args})
-                input_tensor = activations.get(layer_name)
-                print({"input_tensor": input_tensor})
-                weights = layer.weight.data
-                bias = layer.bias.data
-                edges = [{"weights": weights}, {"bias": bias}]
-                nodes.append(Node("conv2d", edges))
-            elif isinstance(layer, nn.BatchNorm2d):
-                print({"batchnormargs": node.args})
-                input_tensor = activations.get(layer_name)
-                print({"input_tensor": input_tensor})
-                edges = [{"weights": layer.weight.data}, {"bias": layer.bias.data}]
-                nodes.append(Node("batchnorm2d", edges))
-            elif isinstance(layer, nn.ReLU):
-                print({"reluargs": node.args})
-                input_tensor = activations.get(layer_name)
-                print({"input_tensor": input_tensor})
-                edges = [{"input_tensor": node.args[0]}]
-                nodes.append(Node("relu", edges))
-            elif isinstance(layer, nn.MaxPool2d):
-                input_tensor = activations.get(layer_name)
-                print({"maxpool2d_input": input_tensor})
-            elif isinstance(layer, nn.Dropout):
-                input_tensor = activations.get(layer_name)
-                print({"dropout input tensor": input_tensor})
-            elif isinstance(layer, nn.Linear):
-                input_tensor = activations.get(layer_name)
-                print({"Linear input" : input_tensor})
-                weights = layer.weight.data
-                bias = layer.bias.data
-                edges = [{"weights": weights}, {"bias": bias}]
-                nodes.append(Node("Linear", edges))
                 
+                input_tensor = activations.get(layer_name)
+                
+                weights = layer.weight.data
+                bias = layer.bias.data
+                
+                edges = [{"input_tensor": input_tensor},
+                         {"weights": weights},
+                         {"bias": bias}]
+                
+                nodes.append(Node("conv2d", edges))
+                
+            elif isinstance(layer, nn.BatchNorm2d):
+                
+                input_tensor = activations.get(layer_name)
+                
+                edges = [{"input_tensor": input_tensor},
+                         {"weights": layer.weight.data},
+                         {"bias": layer.bias.data}]
+                
+                nodes.append(Node("batchnorm2d", edges))
+                
+            elif isinstance(layer, nn.ReLU):
+                
+                input_tensor = activations.get(layer_name)
+                
+                edges = [{"input_tensor": input_tensor}]
+                nodes.append(Node("relu", edges))
+                
+            elif isinstance(layer, nn.MaxPool2d):
+                
+                input_tensor = activations.get(layer_name)
+                edges = [{"input_tensor": input_tensor}]
+                nodes.append(Node("max_pool2d", edges))
+                
+            elif isinstance(layer, nn.Dropout):
+                
+                input_tensor = activations.get(layer_name)
+                edges = [{"input_tensor": input_tensor}]
+                nodes.append(Node("dropout", edges))
+
+            else:
+                input_tensor = activations.get(layer_name)
+                
+                weights = layer.weight.data
+                bias = layer.bias.data
+                
+                edges = [{"weights": weights},
+                         {"bias": bias}]
+                nodes.append(Node("Linear", edges))
 
     dag = DAG(nodes)
     return dag
